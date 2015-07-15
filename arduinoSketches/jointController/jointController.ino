@@ -11,11 +11,11 @@
 #include <std_msgs/String.h>
 #include <std_msgs/UInt16.h>
 
-int limitSwitchPin = 7; // Assigning pin 7 for the limit switch. Note that pin 7 has the internal pull up
-int encPinA = 2;
-int encPinB = 3;
-int mySerialPinRX = 4;
-int mySerialPinTX = 5;
+const int limitSwitchPin = 7; // Assigning pin 7 for the limit switch. Note that pin 7 has the internal pull up
+const int encPinA = 2;
+const int encPinB = 3;
+const int mySerialPinRX = 4;
+const int mySerialPinTX = 5;
 
 Encoder myEnc(encPinA, encPinB); // Reading Encoder data from pin 2 and 3. Note that we use 2 and 3 on an UNO because these are the interupt pins 
 
@@ -28,12 +28,11 @@ double output;
 PID myPID(&input, &output, &setPoint, 0.5, 1, 0.7, DIRECT);
 
 boolean limitSwitchLastReading; // Last reading of the limit switch 
-long limitSwitchLastDebounceTime = 0; // Starting the debounce time at 0
-long limitSwitchDebounceDelay = 50; // Setting the debounce delay time in milliseconds
+uint32_t limitSwitchLastDebounceTime = 0; // Starting the debounce time at 0
+const uint32_t limitSwitchDebounceDelay = 50; // Setting the debounce delay time in milliseconds
 boolean limitSwitchState = true; // State of the limit switch for debouncing
 boolean limitSwitchReading; // Current reading of the limit switch
-int limitSwitchCount = 0;
-
+uint8_t limitSwitchCount = 0;
 
 std_msgs::String test_msg;
 //std_msgs::String test_msg_cb;
@@ -48,10 +47,10 @@ ros::NodeHandle nh;
  * maxForward, maxReverse and motorStop variables are used in the calibration
  * Direction was chosen based on the encoder direction
  */
-int motorControllerCommand = 255;
-int maxForward = 255;
-int maxReverse = 0;
-int motorStop = 127; 
+const uint8_t motorControllerCommand = 255;
+const uint8_t maxForward = 255;
+const uint8_t maxReverse = 0;
+const uint8_t motorStop = 127; 
 
 /*
 void test_cb(const std_msgs::UInt16& cmd_cb) {
