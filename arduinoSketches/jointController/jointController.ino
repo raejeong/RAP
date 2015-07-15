@@ -7,6 +7,9 @@
 #include <Encoder.h> 
 #include <SoftwareSerial.h>
 #include <PID_v1.h>
+#include <ros.h>
+#include <std_msgs/String.h>
+#include <std_msgs/UInt16.h>
 
 int limitSwitchPin = 7; // Assigning pin 7 for the limit switch. Note that pin 7 has the internal pull up
 int encPinA = 2;
@@ -31,6 +34,13 @@ boolean limitSwitchState = true; // State of the limit switch for debouncing
 boolean limitSwitchReading; // Current reading of the limit switch
 int limitSwitchCount = 0;
 
+
+std_msgs::String test_msg;
+//std_msgs::String test_msg_cb;
+ros::Publisher pub_test_msg("test", &test_msg);
+ros::NodeHandle nh;
+
+
 /*
  * motorControllerCommand
  * Gobal variable to store the value sent to the motor controller.
@@ -43,6 +53,16 @@ int maxForward = 255;
 int maxReverse = 0;
 int motorStop = 127; 
 
+/*
+void test_cb(const std_msgs::UInt16& cmd_cb) {
+  String test_cb_string = String((int)cmd_cb.data);
+  const char *test_cb_char = test_cb_string.c_str();
+  test_msg_cb.data = test_cb_char;
+  pub_test_msg.publish(&test_msg_cb);
+}
+
+ros::Subscriber<std_msgs::UInt16> sub("test_cb", test_cb);
+*/
 
 void setup()
 {
@@ -54,6 +74,10 @@ void setup()
   digitalWrite(limitSwitchPin, HIGH); // Enabling the internal pull up
   
   limitSwitchLastReading = digitalRead(limitSwitchPin); // Reading the limit switch data in
+
+  nh.initNode();
+  nh.advertise(pub_test_msg);
+  //  nh.subscribe(sub);
 
   input = encoderRead();
   setPoint = 0;
@@ -67,19 +91,27 @@ void setup()
 void loop()
 {
   input = encoderRead();
-  if(Serial.available() > 0) {
-    setPoint = Serial.read();
-  }
-  Serial.print("output: ");
-  Serial.print(output+127);
-  Serial.print(" input: ");
-  Serial.print(input);
-  Serial.print(" setPoint: ");
-  Serial.println(setPoint, DEC);
+  
+  String test_string = String("output: " + String((int)output+127, DEC));
+  test_string = String(test_string + " input: ");
+  test_string = String(test_string + String((int)input, DEC));
+  test_string = String(test_string + " setPoint: ");
+  test_string = String(test_string + String((int)setPoint, DEC));
+  const char *test_char = test_string.c_str();
+  
+  test_msg.data = test_char;
+
+  pub_test_msg.publish(&test_msg);
+
   myPID.Compute();
   mySerial.write(output+127);
-  delay(1);
+
+  nh.spinOnce();
+
+  delay(100);
 }
+
+
 
 
 /*
