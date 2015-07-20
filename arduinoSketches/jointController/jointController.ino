@@ -25,7 +25,7 @@ double setPoint;
 double input;
 double output;
 
-PID myPID(&input, &output, &setPoint, 0.5, 1, 0.7, DIRECT);
+PID myPID(&input, &output, &setPoint, 1, 1, 1, DIRECT);
 
 boolean limitSwitchLastReading; // Last reading of the limit switch 
 uint32_t limitSwitchLastDebounceTime = 0; // Starting the debounce time at 0
@@ -70,8 +70,6 @@ void setup()
 
   pinMode(limitSwitchPin, INPUT); 
   
-  digitalWrite(limitSwitchPin, HIGH); // Enabling the internal pull up
-  
   limitSwitchLastReading = digitalRead(limitSwitchPin); // Reading the limit switch data in
 
   nh.initNode();
@@ -79,7 +77,7 @@ void setup()
   //  nh.subscribe(sub);
 
   input = encoderRead();
-  setPoint = 0;
+  setPoint = 90;
   myPID.SetMode(AUTOMATIC);
   myPID.SetOutputLimits(maxReverse-motorStop, maxForward-motorStop);
   
@@ -106,35 +104,19 @@ void loop()
   mySerial.write(output+127);
 
   nh.spinOnce();
-
-  delay(100);
+  delay(10);
 }
-
-
 
 
 /*
  * When called, limitSwitch() returns true when the limit switch is pressed 
  * and false when the limit switch is not pressed.
  */
+
 boolean limitSwitch()
 {
-  limitSwitchReading = digitalRead(limitSwitchPin);
-  
-  if(limitSwitchLastReading!=limitSwitchReading) {
-    limitSwitchLastDebounceTime = millis();
-    limitSwitchState = false;
-  }
-  
-  limitSwitchLastReading = limitSwitchReading;
-  
-  if(!limitSwitchState && (millis() - limitSwitchLastDebounceTime) > limitSwitchDebounceDelay) {
-    limitSwitchState = true;
-  }
-  return !limitSwitchReading;
-  
+  return !digitalRead(limitSwitchPin);
 }
-
 
 /*
  * calibration() fucntion that is called every time the system starts up
@@ -147,13 +129,14 @@ void calibration()
     while(limitSwitch()) {
       mySerial.write(maxReverse);
     }
+    delay(100);
   }
   
   // Go forward until the motor triggers the limit switch.
   while(!limitSwitch()) {
     mySerial.write(maxForward);
   }
-  
+
   // Stop the motor
   mySerial.write(motorStop);
 
